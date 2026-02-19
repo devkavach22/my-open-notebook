@@ -1,0 +1,30 @@
+-- Migration 15: Add user_id to tables for multi-user support
+-- Created: 2024-02-19
+
+-- Add user_id field to notebook table
+DEFINE FIELD user_id ON notebook TYPE option<record<user>>;
+DEFINE INDEX notebook_user_idx ON notebook FIELDS user_id;
+
+-- Add user_id field to source table
+DEFINE FIELD user_id ON source TYPE option<record<user>>;
+DEFINE INDEX source_user_idx ON source FIELDS user_id;
+
+-- Add user_id field to note table
+DEFINE FIELD user_id ON note TYPE option<record<user>>;
+DEFINE INDEX note_user_idx ON note FIELDS user_id;
+
+-- Add user_id field to chat_session table
+DEFINE FIELD user_id ON chat_session TYPE option<record<user>>;
+DEFINE INDEX chat_session_user_idx ON chat_session FIELDS user_id;
+
+-- Add user_id field to episode table
+DEFINE FIELD user_id ON episode TYPE option<record<user>>;
+DEFINE INDEX episode_user_idx ON episode FIELDS user_id;
+
+-- Add user_id field to transformation table
+DEFINE FIELD user_id ON transformation TYPE option<record<user>>;
+DEFINE INDEX transformation_user_idx ON transformation FIELDS user_id;
+
+-- Add user_id field to credential table
+DEFINE FIELD user_id ON credential TYPE option<record<user>>;
+DEFINE INDEX credential_user_idx ON credential FIELDS user_id;

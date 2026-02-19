@@ -1,0 +1,20 @@
+-- Migration 15 Down: Remove user_id fields
+-- Created: 2024-02-19
+
+-- Remove indexes
+REMOVE INDEX notebook_user_idx ON notebook;
+REMOVE INDEX source_user_idx ON source;
+REMOVE INDEX note_user_idx ON note;
+REMOVE INDEX chat_session_user_idx ON chat_session;
+REMOVE INDEX episode_user_idx ON episode;
+REMOVE INDEX transformation_user_idx ON transformation;
+REMOVE INDEX credential_user_idx ON credential;
+
+-- Remove fields
+REMOVE FIELD user_id ON notebook;
+REMOVE FIELD user_id ON source;
+REMOVE FIELD user_id ON note;
+REMOVE FIELD user_id ON chat_session;
+REMOVE FIELD user_id ON episode;
+REMOVE FIELD user_id ON transformation;
+REMOVE FIELD user_id ON credential;

@@ -12,6 +12,7 @@ interface AuthState {
   hasHydrated: boolean
   authRequired: boolean | null
   setHasHydrated: (state: boolean) => void
+  setToken: (token: string) => void
   checkAuthRequired: () => Promise<boolean>
   login: (password: string) => Promise<boolean>
   logout: () => void
@@ -32,6 +33,15 @@ export const useAuthStore = create<AuthState>()(
 
       setHasHydrated: (state: boolean) => {
         set({ hasHydrated: state })
+      },
+
+      setToken: (token: string) => {
+        set({ 
+          isAuthenticated: true, 
+          token, 
+          lastAuthCheck: Date.now(),
+          error: null 
+        })
       },
 
       checkAuthRequired: async () => {
@@ -151,13 +161,22 @@ export const useAuthStore = create<AuthState>()(
         const state = get()
         const { token, lastAuthCheck, isCheckingAuth, isAuthenticated } = state
 
+        // Check for JWT token in localStorage first
+        const jwtToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+        
+        // If we have a JWT token but it's not in the store, set it
+        if (jwtToken && token !== jwtToken) {
+          set({ token: jwtToken, isAuthenticated: true, lastAuthCheck: Date.now() })
+          return true
+        }
+
         // If already checking, return current auth state
         if (isCheckingAuth) {
           return isAuthenticated
         }
 
         // If no token, not authenticated
-        if (!token) {
+        if (!token && !jwtToken) {
           return false
         }
 
@@ -171,11 +190,34 @@ export const useAuthStore = create<AuthState>()(
 
         try {
           const apiUrl = await getApiUrl()
+          const tokenToUse = jwtToken || token
 
+          // Try to verify with /api/auth/me endpoint first (for JWT tokens)
+          if (jwtToken) {
+            const authResponse = await fetch(`${apiUrl}/api/auth/me`, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${tokenToUse}`,
+                'Content-Type': 'application/json'
+              }
+            })
+            
+            if (authResponse.ok) {
+              set({ 
+                isAuthenticated: true,
+                token: tokenToUse,
+                lastAuthCheck: now,
+                isCheckingAuth: false 
+              })
+              return true
+            }
+          }
+
+          // Fallback to notebooks endpoint (for basic auth)
           const response = await fetch(`${apiUrl}/api/notebooks`, {
             method: 'GET',
             headers: {
-              'Authorization': `Bearer ${token}`,
+              'Authorization': `Bearer ${tokenToUse}`,
               'Content-Type': 'application/json'
             }
           })
@@ -188,6 +230,11 @@ export const useAuthStore = create<AuthState>()(
             })
             return true
           } else {
+            // Clear both store and localStorage
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('auth_token')
+              localStorage.removeItem('user')
+            }
             set({
               isAuthenticated: false,
               token: null,

@@ -1,0 +1,62 @@
+========================================
+   HOW TO START OPEN NOTEBOOK
+========================================
+
+EASIEST WAY:
+------------
+Double-click: start.bat
+
+MANUAL WAY:
+-----------
+1. Open Command Prompt or PowerShell
+2. Run these commands:
+
+cd C:\Users\hemanshi.l\Desktop\open-notebook
+docker compose up -d
+timeout /t 30
+start http://localhost:8502
+
+TO STOP:
+--------
+Double-click: stop.bat
+
+OR run: docker compose down
+
+ACCESS URLS:
+------------
+Frontend: http://localhost:8502
+API:      http://localhost:5055
+API Docs: http://localhost:5055/docs
+
+FIRST TIME SETUP:
+-----------------
+1. Start the application (start.bat)
+2. Get FREE API key from: https://console.groq.com/
+3. Open: http://localhost:8502
+4. Go to: Settings → API Keys
+5. Add your API key
+6. Test → Discover → Register models
+7. Set defaults in Settings → Models
+8. Done!
+
+DETAILED GUIDES:
+----------------
+- README_FIRST.md - Start here!
+- COMMANDS_QUICK_REFERENCE.md - All commands
+- CONFIGURE_MODELS_GUIDE.md - Set up AI models
+- FINAL_SUMMARY.md - Complete summary
+
+BATCH FILES:
+------------
+start.bat   - Start Open Notebook
+stop.bat    - Stop Open Notebook
+restart.bat - Restart Open Notebook
+status.bat  - Check if running
+logs.bat    - View logs
+
+NEED HELP?
+----------
+Read: README_FIRST.md
+Or:   FINAL_SUMMARY.md
+
+========================================

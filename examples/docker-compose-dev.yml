@@ -1,28 +1,79 @@
+# services:
+#   surrealdb:
+#     image: surrealdb/surrealdb:v2
+#     volumes:
+#       - ./surreal_data:/mydata
+#     environment:
+#       - SURREAL_EXPERIMENTAL_GRAPHQL=true
+#     ports:
+#       - "8000:8000"
+#     command: start --log info --user root --pass root rocksdb:/mydata/mydatabase.db
+#     pull_policy: always
+#     user: root
+#     restart: always
+#   open_notebook:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     ports:
+#       - "8502:8502"
+#       - "5055:5055"
+#     env_file:
+#       - ./docker.env
+#     depends_on:
+#       - surrealdb
+#     volumes:
+#       - ./notebook_data:/app/data
+#     restart: always
+    
+
 services:
   surrealdb:
     image: surrealdb/surrealdb:v2
+    # container_name: surrealdb-1
     volumes:
-      - ./surreal_data:/mydata
-    environment:
-      - SURREAL_EXPERIMENTAL_GRAPHQL=true
+    - ./surreal_data:/mydata
+    # environment:
+    # - SURREAL_EXPERIMENTAL_GRAPHQL=true
     ports:
-      - "8000:8000"
-    command: start --log info --user root --pass root rocksdb:/mydata/mydatabase.db
-    pull_policy: always
-    user: root
-    restart: always
+    - "8000:8000"
+    command: start --log info --user root --pass root --bind 0.0.0.0:8000 rocksdb:/mydata/mydatabase.db
+    # pull_policy: always
+    # user: root
+    # restart: always
   open_notebook:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: lfnovo/open_notebook:v1-latest-single
+    pull_policy: always
+    # build:
+    # context: .
+    # dockerfile: Dockerfile
     ports:
-      - "8502:8502"
-      - "5055:5055"
-    env_file:
-      - ./docker.env
+    - "8502:8502"
+    - "5055:5055"
+    environment:
+    - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    - OLLAMA_API_BASE=http://host.docker.internal:11434
+    - SURREAL_URL=ws://127.0.0.1:8000/rpc
+    - SURREAL_USER=root
+    - SURREAL_PASSWORD=root
+    - SURREAL_NAMESPACE=open_notebook
+    - SURREAL_DATABASE=open_notebook
+    - API_URL=http://localhost:5055
+    # env_file:
+    # - ./docker.env
     depends_on:
-      - surrealdb
+    - surrealdb
+    - ollama
     volumes:
-      - ./notebook_data:/app/data
+    - ./notebook_data:/app/data
+    - ./surreal_data:/mydata
     restart: always
-    
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+    - "11435:11434"
+    volumes:
+    - ./ollama_models:/root/.ollama
+    environment:
+    - OLLAMA_NUM_GPU=0
+    restart: always

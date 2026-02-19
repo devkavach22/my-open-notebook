@@ -24,15 +24,22 @@ apiClient.interceptors.request.use(async (config) => {
   }
 
   if (typeof window !== 'undefined') {
-    const authStorage = localStorage.getItem('auth-storage')
-    if (authStorage) {
-      try {
-        const { state } = JSON.parse(authStorage)
-        if (state?.token) {
-          config.headers.Authorization = `Bearer ${state.token}`
+    // First, try to get JWT token from new auth system
+    const jwtToken = localStorage.getItem('auth_token')
+    if (jwtToken) {
+      config.headers.Authorization = `Bearer ${jwtToken}`
+    } else {
+      // Fallback to old auth system for backwards compatibility
+      const authStorage = localStorage.getItem('auth-storage')
+      if (authStorage) {
+        try {
+          const { state } = JSON.parse(authStorage)
+          if (state?.token) {
+            config.headers.Authorization = `Bearer ${state.token}`
+          }
+        } catch (error) {
+          console.error('Error parsing auth storage:', error)
         }
-      } catch (error) {
-        console.error('Error parsing auth storage:', error)
       }
     }
   }
@@ -56,6 +63,8 @@ apiClient.interceptors.response.use(
       // Clear auth and redirect to login
       if (typeof window !== 'undefined') {
         localStorage.removeItem('auth-storage')
+        localStorage.removeItem('auth_token')
+        localStorage.removeItem('user')
         window.location.href = '/login'
       }
     }

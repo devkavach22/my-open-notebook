@@ -1,0 +1,7 @@
+-- Rollback Migration 14: Drop user table
+
+REMOVE INDEX user_verification_token_idx ON user;
+REMOVE INDEX user_reset_token_idx ON user;
+REMOVE INDEX user_username_idx ON user;
+REMOVE INDEX user_email_idx ON user;
+REMOVE TABLE user;
