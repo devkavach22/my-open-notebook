@@ -12,7 +12,6 @@ from loguru import logger
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from api.auth import PasswordAuthMiddleware
-from api.middleware import UserContextMiddleware
 from api.routers import (
     auth,
     chat,
@@ -117,9 +116,6 @@ app.add_middleware(
         "/api/config",
     ],
 )
-
-# Add user context middleware to extract user_id from JWT
-app.add_middleware(UserContextMiddleware)
 
 # Add CORS middleware last (so it processes first)
 app.add_middleware(
