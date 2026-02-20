@@ -170,6 +170,19 @@ class DefaultPromptUpdate(BaseModel):
     )
 
 
+# Notebook Summary models
+class NotebookSummaryRequest(BaseModel):
+    notebook_id: str = Field(..., description="ID of the notebook to summarize")
+    model_id: str = Field(..., description="Model ID to use for summary generation")
+
+
+class NotebookSummaryResponse(BaseModel):
+    summary: str = Field(..., description="Generated summary")
+    notebook_id: str = Field(..., description="ID of the notebook")
+    source_count: int = Field(..., description="Number of sources summarized")
+
+
+
 # Notes API models
 class NoteCreate(BaseModel):
     title: Optional[str] = Field(None, description="Note title")

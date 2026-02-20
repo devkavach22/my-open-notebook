@@ -508,3 +508,111 @@ async def generate_mindmap(notebook_id: str):
 
 # Update forward refs for nested model
 MindMapNode.model_rebuild()
+
+
+# Summary endpoint
+from api.models import NotebookSummaryRequest, NotebookSummaryResponse
+
+
+@router.post("/notebooks/{notebook_id}/summary", response_model=NotebookSummaryResponse)
+async def generate_notebook_summary(notebook_id: str, request: NotebookSummaryRequest):
+    """Generate a comprehensive summary of all notebook sources."""
+    try:
+        logger.info(f"SUMMARY: Starting summary generation for notebook {notebook_id}")
+        
+        # Get notebook
+        notebook = await Notebook.get(notebook_id)
+        if not notebook:
+            raise HTTPException(status_code=404, detail="Notebook not found")
+        
+        logger.info(f"SUMMARY: Found notebook '{notebook.name}'")
+        
+        # Get sources with full_text
+        sources = await notebook.get_sources()
+        logger.info(f"SUMMARY: Found {len(sources)} sources")
+        
+        if not sources:
+            return NotebookSummaryResponse(
+                summary="This notebook has no sources to summarize.",
+                notebook_id=notebook_id,
+                source_count=0
+            )
+        
+        # Collect all source content
+        all_content = []
+        for source in sources:
+            try:
+                full_source = await Source.get(source.id)
+                if full_source and full_source.full_text:
+                    all_content.append(f"## {source.title}\n\n{full_source.full_text}")
+                    logger.info(f"SUMMARY: Added source '{source.title}' ({len(full_source.full_text)} chars)")
+            except Exception as e:
+                logger.error(f"SUMMARY: Error fetching source {source.id}: {e}")
+        
+        if not all_content:
+            return NotebookSummaryResponse(
+                summary="No content available in the sources to summarize.",
+                notebook_id=notebook_id,
+                source_count=len(sources)
+            )
+        
+        # Combine all content
+        combined_content = "\n\n---\n\n".join(all_content)
+        logger.info(f"SUMMARY: Combined content length: {len(combined_content)} chars")
+        
+        # Generate summary using AI
+        from open_notebook.ai.provision import provision_langchain_model
+        
+        try:
+            llm = await provision_langchain_model(
+                content=combined_content,
+                model_id=request.model_id,
+                default_type="chat"
+            )
+            
+            # Create summary prompt
+            summary_prompt = f"""You are an expert at creating comprehensive summaries. 
+
+Please create a detailed summary of the following content from a notebook called "{notebook.name}".
+
+The summary should:
+1. Capture the main themes and key points
+2. Highlight important insights and findings
+3. Be well-structured with clear sections
+4. Be comprehensive but concise
+5. Use markdown formatting for better readability
+
+Content to summarize:
+
+{combined_content}
+
+Please provide the summary now:"""
+            
+            # Generate summary
+            response = await llm.ainvoke(summary_prompt)
+            summary_text = response.content if hasattr(response, 'content') else str(response)
+            
+            logger.info(f"✅ Generated summary ({len(summary_text)} chars)")
+            
+            return NotebookSummaryResponse(
+                summary=summary_text,
+                notebook_id=notebook_id,
+                source_count=len(sources)
+            )
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to generate AI summary: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to generate summary: {str(e)}"
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"SUMMARY: Fatal error: {e}")
+        logger.exception(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate summary: {str(e)}"
+        )

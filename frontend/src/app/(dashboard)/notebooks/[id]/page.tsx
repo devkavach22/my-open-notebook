@@ -194,10 +194,10 @@ export default function NotebookPage() {
             'hidden lg:flex h-full min-h-0 gap-6 transition-all duration-150',
             'flex-row'
           )}>
-            {/* Sources Column */}
+            {/* Sources Column - 20% */}
             <div className={cn(
               'transition-all duration-150',
-              sourcesCollapsed ? 'w-12 flex-shrink-0' : 'flex-none basis-1/3'
+              sourcesCollapsed ? 'w-12 flex-shrink-0' : 'flex-none w-[20%]'
             )}>
               <SourcesColumn
                 sources={sources}
@@ -213,18 +213,18 @@ export default function NotebookPage() {
               />
             </div>
 
-            {/* Chat Column - middle, takes remaining space */}
-            <div className="transition-all duration-150 flex-1">
+            {/* Chat Column - 60% */}
+            <div className="transition-all duration-150 flex-none w-[60%]">
               <ChatColumn
                 notebookId={notebookId}
                 contextSelections={contextSelections}
               />
             </div>
 
-            {/* Studio Column - right side */}
+            {/* Studio Column - 20% */}
             <div className={cn(
               'transition-all duration-150',
-              studioCollapsed ? 'w-12 flex-shrink-0' : 'flex-none basis-1/3'
+              studioCollapsed ? 'w-12 flex-shrink-0' : 'flex-none w-[20%]'
             )}>
               <StudioColumn
                 notebookId={notebookId}

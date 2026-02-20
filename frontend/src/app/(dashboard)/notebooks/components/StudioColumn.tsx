@@ -20,6 +20,7 @@ import { useTranslation } from '@/lib/hooks/use-translation'
 import { NoteResponse } from '@/lib/types/api'
 import { cn } from '@/lib/utils'
 import { MindMapDialog } from '@/components/notebooks/MindMapDialog'
+import { SummaryDialog } from '@/components/notebooks/SummaryDialog'
 
 interface StudioColumnProps {
   notebookId: string
@@ -39,6 +40,7 @@ interface StudioFeature {
 export function StudioColumn({ notebookId, notebookName, notes }: StudioColumnProps) {
   const { t } = useTranslation()
   const [mindMapOpen, setMindMapOpen] = useState(false)
+  const [summaryOpen, setSummaryOpen] = useState(false)
 
   // Collapsible column state
   const { studioCollapsed, toggleStudio } = useNotebookColumnsStore()
@@ -90,13 +92,13 @@ export function StudioColumn({ notebookId, notebookName, notes }: StudioColumnPr
       }
     },
     {
-      id: 'flashcards',
+      id: 'summary',
       icon: BookOpen,
-      label: 'Flashcards',
-      description: 'Study cards from content',
+      label: 'Summary',
+      description: 'Generate content summary',
       available: true,
       onClick: () => {
-        alert('Flashcards feature coming soon! This will auto-generate study cards from your sources.')
+        setSummaryOpen(true)
       }
     },
     {
@@ -214,6 +216,13 @@ export function StudioColumn({ notebookId, notebookName, notes }: StudioColumnPr
       <MindMapDialog
         open={mindMapOpen}
         onOpenChange={setMindMapOpen}
+        notebookId={notebookId}
+        notebookName={notebookName}
+      />
+
+      <SummaryDialog
+        open={summaryOpen}
+        onOpenChange={setSummaryOpen}
         notebookId={notebookId}
         notebookName={notebookName}
       />
